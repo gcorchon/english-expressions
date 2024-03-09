@@ -36,7 +36,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3.0.1
       with:
         name: github-pages
-        path: dist/english-expressions/browser/*
+        path: dist/english-expressions/browser
         overwrite: true
     - name: Deploy Pages
       uses: actions/deploy-pages@v4.0.4
