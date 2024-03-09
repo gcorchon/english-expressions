@@ -1,0 +1,20 @@
+<span>#{{ questionNumber() }}</span>
+
+<p class="text">{{ data().text }}</p>
+
+<div class="translation">
+    @if(answerShown()){
+    <p>
+        {{ data().translation }}
+    </p>
+    <img src="assets/speaker.svg" alt="" (click)="synthesize()" />
+    }
+</div>
+    
+@if(answerShown()){    
+    <button type="button" (click)="next.emit()">Siguiente</button>
+}
+@else {
+    <button type="button" (click)="answerShown.set(true)">Ver respuesta</button>
+}
+
