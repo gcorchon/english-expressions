@@ -1,6 +1,8 @@
-import { Component, EventEmitter, HostBinding, Output, input, signal } from '@angular/core';
+import { Component, EventEmitter, HostBinding, HostListener, Output, inject, input, signal } from '@angular/core';
 import { DictionaryEntry } from '../../services/dictionary.service';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { KeyboardService } from '../../services/keyboard.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-question',
@@ -32,18 +34,23 @@ import { animate, style, transition, trigger } from '@angular/animations';
   ],
 })
 export class QuestionComponent {
-
+    
   @HostBinding('@slide') get slide() { return true; }
+  @Output() next:EventEmitter<void> = new EventEmitter();
 
   questionNumber = input.required<number>();
   data = input.required<DictionaryEntry>();
 
-  @Output()
-  next = new EventEmitter();
+  protected answerShown = signal(false);
+  private keyboard = inject(KeyboardService);
 
-  answerShown = signal(false);
+  constructor(){
+    this.keyboard.keypressed$.pipe(takeUntilDestroyed()).subscribe(()=>{
+      if(this.answerShown()) this.next.emit();
+      else this.answerShown.set(true);
+    });
+  }
     
-
   synthesize(){
     let utterance = new SpeechSynthesisUtterance(this.data().translation);
     utterance.lang = "en-GB";
