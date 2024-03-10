@@ -1,3 +1,4 @@
+declare function gtag(...values:any[]):void;
 import { Component, ViewContainerRef, effect, inject, viewChild } from '@angular/core';
 import { QuestionComponent } from '../../components/question/question.component';
 import { HomeSignalStore } from './home.signal-store';
@@ -31,6 +32,12 @@ export default class HomeComponent {
       componentRef.setInput("data", this.store.question());
       componentRef.setInput("questionNumber", this.store.currentQuestionIndex() + 1);
       componentRef.instance.next.subscribe(() => this.store.nextQuestion());
+
+      gtag({
+        'event': 'pageview',     
+          'page_location': '/',
+          'page_title': this.store.question().text             
+      });
     });
 
     fromEvent<KeyboardEvent>(this.document, "keydown").pipe(
