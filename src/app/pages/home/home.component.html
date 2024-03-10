@@ -1,6 +1,18 @@
 @if(!store.loading()){
-    <div>
-        <ng-template #vcr></ng-template>
+    <div class="slides">
+        <div class="slides-container">
+            <ng-template #vcr></ng-template>
+        </div>
+        <div class="auto-mode">
+            <label class="switch">
+                <input #check type="checkbox" (change)="autoModeEnabled.next(check.checked)">
+                <span class="slider"></span>
+            </label>
+            Modo automático
+        </div>
     </div>
+
+    
+        
 }
 

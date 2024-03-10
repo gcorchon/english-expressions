@@ -38,7 +38,7 @@ export class QuestionComponent {
   @HostBinding('@slide') get slide() { return true; }
   @Output() next:EventEmitter<void> = new EventEmitter();
 
-  questionNumber = input.required<number>();
+  questionNumber = input.required<string>();
   data = input.required<DictionaryEntry>();
 
   protected answerShown = signal(false);

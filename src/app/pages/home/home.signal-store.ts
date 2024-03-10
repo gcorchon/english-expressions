@@ -20,7 +20,8 @@ const initialState:HomeSignalState = {
 export const HomeSignalStore = signalStore(
     withState(initialState),
     withComputed((store)=>({
-        question: computed(() => store.dictionary()[store.currentQuestionIndex() % store.dictionary().length])
+        question: computed(() => store.dictionary()[store.currentQuestionIndex() % store.dictionary().length]),
+        totalQuestions: computed(() => store.dictionary().length)
     })),
     withMethods((store, dictionaryService = inject(DictionaryService)) => ({
         load: rxMethod<void>(
@@ -34,7 +35,7 @@ export const HomeSignalStore = signalStore(
                 )))
         ),
         nextQuestion() {
-            patchState(store, { currentQuestionIndex: store.currentQuestionIndex() + 1 });
+            patchState(store, { currentQuestionIndex: (store.currentQuestionIndex() + 1) % store.totalQuestions() });
         }
     })),
     withHooks((store) => ({

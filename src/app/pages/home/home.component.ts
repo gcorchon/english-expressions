@@ -3,7 +3,7 @@ import { Component, ViewContainerRef, effect, inject, viewChild } from '@angular
 import { QuestionComponent } from '../../components/question/question.component';
 import { HomeSignalStore } from './home.signal-store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, fromEvent, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, fromEvent, interval, merge, switchMap, tap } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 import { KeyboardService } from '../../services/keyboard.service';
 @Component({
@@ -16,8 +16,12 @@ import { KeyboardService } from '../../services/keyboard.service';
 })
 export default class HomeComponent {
   private document = inject(DOCUMENT);
-  protected store = inject(HomeSignalStore);
   private keyboard = inject(KeyboardService);
+
+  protected store = inject(HomeSignalStore);
+  protected autoModeEnabled:BehaviorSubject<boolean> = new BehaviorSubject(false);
+  
+  private tick$ = combineLatest({ interval: interval(3000), enabled:this.autoModeEnabled }).pipe(filter(v => v.enabled ));
 
   insertionPoint = viewChild("vcr", { read: ViewContainerRef });
 
@@ -30,7 +34,7 @@ export default class HomeComponent {
 
       let componentRef = vcr.createComponent(QuestionComponent);
       componentRef.setInput("data", this.store.question());
-      componentRef.setInput("questionNumber", this.store.currentQuestionIndex() + 1);
+      componentRef.setInput("questionNumber", (this.store.currentQuestionIndex() + 1) + "/" + this.store.totalQuestions());
       componentRef.instance.next.subscribe(() => this.store.nextQuestion());
 
       gtag({
@@ -40,9 +44,12 @@ export default class HomeComponent {
       });
     });
 
-    fromEvent<KeyboardEvent>(this.document, "keydown").pipe(
-      takeUntilDestroyed(), 
-      filter(evt => evt.code == 'Space')
-    ).subscribe(()=>this.keyboard.keypressed());
+    merge(
+      fromEvent<KeyboardEvent>(this.document, "keydown")
+        .pipe(
+          filter(evt => evt.code == 'Space')
+        ),
+      this.tick$
+    ).pipe(takeUntilDestroyed()).subscribe(_ => this.keyboard.keypressed());
   }
 }
