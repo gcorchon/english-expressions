@@ -3,7 +3,7 @@ import { Component, ViewContainerRef, effect, inject, viewChild } from '@angular
 import { QuestionComponent } from '../../components/question/question.component';
 import { HomeSignalStore } from './home.signal-store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest, filter, fromEvent, interval, merge, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Subject, combineLatest, filter, fromEvent, interval, merge, switchMap, takeUntil, tap } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 import { KeyboardService } from '../../services/keyboard.service';
 @Component({
@@ -17,14 +17,11 @@ import { KeyboardService } from '../../services/keyboard.service';
 export default class HomeComponent {
   private document = inject(DOCUMENT);
   private keyboard = inject(KeyboardService);
-
   protected store = inject(HomeSignalStore);
-  protected autoModeEnabled:BehaviorSubject<boolean> = new BehaviorSubject(false);
-  
-  private tick$ = combineLatest({ interval: interval(3000), enabled:this.autoModeEnabled }).pipe(filter(v => v.enabled ));
-
+    
   insertionPoint = viewChild("vcr", { read: ViewContainerRef });
 
+  protected autoModeChanged$:Subject<boolean> = new Subject();
   constructor(){
     effect(()=>{
       let vcr = this.insertionPoint();
@@ -47,9 +44,12 @@ export default class HomeComponent {
     merge(
       fromEvent<KeyboardEvent>(this.document, "keydown")
         .pipe(
-          filter(evt => evt.code == 'Space')
+          filter(evt => evt.code == 'ArrowRight')
         ),
-      this.tick$
-    ).pipe(takeUntilDestroyed()).subscribe(_ => this.keyboard.keypressed());
+      this.autoModeChanged$.pipe(
+        switchMap(auto => auto ?
+            interval(3000).pipe(takeUntil(this.autoModeChanged$.pipe(filter(a => !a)))): EMPTY
+        )
+    )).pipe(takeUntilDestroyed()).subscribe(_ => this.keyboard.keypressed());
   }
 }

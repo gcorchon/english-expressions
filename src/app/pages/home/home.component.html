@@ -5,7 +5,7 @@
         </div>
         <div class="auto-mode">
             <label class="switch">
-                <input #check type="checkbox" (change)="autoModeEnabled.next(check.checked)">
+                <input #check type="checkbox" (change)="this.autoModeChanged$.next(check.checked)">
                 <span class="slider"></span>
             </label>
             Modo automático
